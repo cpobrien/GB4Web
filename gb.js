@@ -24,7 +24,7 @@ var opcodeMap = [
     nop, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, jp, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
+    nop, nop, nop, nop, nop, call, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
@@ -36,6 +36,11 @@ var opcodeMap = [
 function nop(cpu) { return cpu.pc++ }
 
 function jp(cpu) {
+    cpu.pc = cpu.rom.read16(cpu.pc + 1);
+}
+
+function call(cpu) {
+    cpu.push(cpu.pc);
     cpu.pc = cpu.rom.read16(cpu.pc + 1);
 }
 
@@ -75,11 +80,27 @@ class CPU {
     printState() {
         console.log(`PC: 0x${this.pc.toHex()}`)
     }
+
+    pop() {
+        var lo = this.rom.read(this.sp++);
+        var hi = this.rom.read(this.sp++);
+        return hi << 8 | lo;
+    }
+    push(val) {
+        var lo = val & 0xFF;
+        var hi = val >> 8;
+        this.rom.write(this.sp--, hi);
+        this.rom.write(this.sp--, lo);
+    }
 }
 
 class ROMFile {
     constructor(buffer) {
         this.rom = buffer;
+    }
+
+    write(address, val) {
+        this.rom[address] = val;
     }
 
     read(address) {
