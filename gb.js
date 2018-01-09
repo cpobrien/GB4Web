@@ -30,7 +30,7 @@ var opcodeMap = [
     ldh, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
     ldh, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
+    nop, nop, nop, nop, nop, nop, nop, nop
 ];
 
 var cbOpcodeMap = [
@@ -58,14 +58,14 @@ var cbOpcodeMap = [
     res, res, res, res, res, res, res, res,
     res, res, res, res, res, res, res, res,
     res, res, res, res, res, res, res, res,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
+    set, set, set, set, set, set, set, set,
+    set, set, set, set, set, set, set, set,
+    set, set, set, set, set, set, set, set,
+    set, set, set, set, set, set, set, set,
+    set, set, set, set, set, set, set, set,
+    set, set, set, set, set, set, set, set,
+    set, set, set, set, set, set, set, set,
+    set, set, set, set, set, set, set, set
 ];
 
 function res(cpu) {
@@ -73,6 +73,15 @@ function res(cpu) {
     runCbCommand(cpu, opcode, reg => {
         var bit = selectBit(opcode);
         return reg & ~(1 << bit);
+    });
+    cpu.pc++;
+}
+
+function set(cpu) {
+    var opcode = cpu.read(cpu.pc);
+    runCbCommand(cpu, opcode, reg => {
+        var bit = selectBit(opcode);
+        return reg | (1 << bit);
     });
     cpu.pc++;
 }
