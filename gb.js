@@ -2,11 +2,11 @@ var opcodeMap = [
     nop, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
+    jr, nop, nop, nop, nop, nop, nop, nop,
+    jr, nop, nop, nop, nop, nop, nop, nop,
+    jr, nop, nop, nop, nop, nop, nop, nop,
+    jr, nop, nop, nop, nop, nop, nop, nop,
+    jr, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
@@ -144,9 +144,17 @@ function cb(cpu) { cpu.cb = true; cpu.pc++; }
 
 function nop(cpu) { return cpu.pc++ }
 
-function jp(cpu) {
-    cpu.pc = cpu.read16(cpu.pc + 1);
+function jr(cpu) {
+    var opcode = cpu.read(cpu.pc);
+    var address = cpu.pc + cpu.read(cpu.pc + 1);
+    if (!cpu.shouldJump(opcode)) {
+        cpu.pc += 2;
+        return;
+    }
+    cpu.pc = address;
 }
+
+function jp(cpu) { cpu.pc = cpu.read16(cpu.pc + 1); }
 
 function call(cpu) {
     cpu.push(cpu.pc);
@@ -189,6 +197,24 @@ class CPU {
             if (op == nop) nopCount++; // ew
             op(this);
         }
+    }
+
+    shouldJump(opcode) {
+        switch (opcode) {
+            // NZ
+            case 0x20:
+            case 0xC2: return !this.F.Z;
+            // NC
+            case 0x30:
+            case 0xD2: return !this.F.C;
+            // Z
+            case 0x28:
+            case 0xCA: return this.F.Z;
+            // C
+            case 0x38:
+            case 0xDA: return this.F.C;
+        }
+        return true;
     }
 
     printState() {
