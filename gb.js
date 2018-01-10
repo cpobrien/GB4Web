@@ -22,7 +22,7 @@ var opcodeMap = [
     nop, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
+    cp, cp, cp, cp, cp, cp, cp, cp,
     nop, nop, nop, jp, nop, nop, nop, nop,
     nop, nop, nop, cb, nop, call, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
@@ -30,7 +30,7 @@ var opcodeMap = [
     ldh, nop, nop, nop, nop, nop, nop, nop,
     nop, nop, nop, nop, nop, nop, nop, nop,
     ldh, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop
+    nop, nop, nop, nop, nop, nop, cp, nop
 ];
 
 var cbOpcodeMap = [
@@ -70,7 +70,7 @@ var cbOpcodeMap = [
 
 function res(cpu) {
     var opcode = cpu.read(cpu.pc);
-    runCbCommand(cpu, opcode, reg => {
+    writeReg(cpu, opcode, reg => {
         var bit = selectBit(opcode);
         return reg & ~(1 << bit);
     });
@@ -79,7 +79,7 @@ function res(cpu) {
 
 function set(cpu) {
     var opcode = cpu.read(cpu.pc);
-    runCbCommand(cpu, opcode, reg => {
+    writeReg(cpu, opcode, reg => {
         var bit = selectBit(opcode);
         return reg | (1 << bit);
     });
@@ -87,7 +87,7 @@ function set(cpu) {
 }
 
 function selectBit(opcode) { return Math.floor((opcode % 64) / 8) }
-function runCbCommand(cpu, opcode, fun) {
+function writeReg(cpu, opcode, fun) {
    switch (opcode % 8) {
        case 0: cpu.B = fun(cpu.B); break;
        case 1: cpu.C = fun(cpu.C); break;
@@ -96,11 +96,37 @@ function runCbCommand(cpu, opcode, fun) {
        case 4: cpu.H = fun(cpu.H); break;
        case 5: cpu.L = fun(cpu.L); break;
        case 6:
-           cpu.H = fun(cpu.H);
-           cpu.L = fun(cpu.L);
+           var address = cpu.combineHL();
+           cpu.write(address, cpu.read(address));
            break;
        case 7: cpu.A = fun(cpu.A); break;
    }
+}
+
+function readReg(cpu, opcode) {
+    switch (opcode % 8) {
+        case 0: return cpu.B;
+        case 1: return cpu.C;
+        case 2: return cpu.D;
+        case 3: return cpu.E;
+        case 4: return cpu.H;
+        case 5: return cpu.L;
+        case 6: return cpu.read(cpu.combineHL());
+        case 7: return cpu.A;
+    }
+}
+
+function cp(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    var val = readReg(cpu, opcode);
+    if (opcode == 0xFE) {
+        val = cpu.read(cpu.pc++);
+    }
+    var diff = cpu.A - val;
+    cpu.F.Z = diff === 0;
+    cpu.F.N = ((diff & 0xF) > (cpu.A & 0xF));
+    cpu.F.H = true;
+    cpu.F.C = diff < 0;
 }
 
 function ldh(cpu) {
@@ -192,6 +218,10 @@ class CPU {
 
     read16(address) {
         return this.rom.read16(address);
+    }
+
+    combineHL() {
+        return this.H << 8 | this.L;
     }
 }
 
