@@ -129,6 +129,23 @@ function cp(cpu) {
     cpu.F.C = diff < 0;
 }
 
+function ld(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    var opRem = opcode % 8;
+    var lessThan0x40 = Math.floor(opcode / 16) < 4;
+    var greaterThan0xDF = Math.floor(opcode / 16) > 0xD;
+    var isLdSP = opcode === 0x8;
+    var isLdDouble = opRem === 1 && lessThan0x40;
+    var isLdDoubleToReg = (opRem === 2 || opRem === 6) && lessThan0x40;
+    if (isLdSP) {
+
+    } else if (isLdDouble) {
+
+    } else if (isLdDoubleToReg) {
+
+    }
+}
+
 function ldh(cpu) {
     var opcode = cpu.read(cpu.pc);
     var position = 0xFF00 + cpu.read(cpu.pc + 1);
