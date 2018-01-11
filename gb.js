@@ -132,16 +132,21 @@ function cp(cpu) {
 function ld(cpu) {
     var opcode = cpu.read(cpu.pc++);
     var opRem = opcode % 8;
-    var lessThan0x40 = Math.floor(opcode / 16) < 4;
-    var greaterThan0xDF = Math.floor(opcode / 16) > 0xD;
-    var isLdSP = opcode === 0x8;
-    var isLdDouble = opRem === 1 && lessThan0x40;
-    var isLdDoubleToReg = (opRem === 2 || opRem === 6) && lessThan0x40;
-    if (isLdSP) {
+    var highNibble= Math.floor(opcode / 16)
+    if (opcode === 0x8) {
+        //cpu.sp = cpu.read16(cpu.pc);
+        cpu.pc += 2;
+    } else if (opRem === 1 && highNibble < 4) {
+        var addressChoice = [cpu.setBC, cpu.setDE, cpu.setHL, cpu.setSP];
+        var word = cpu.read16(cpu.pc);
+        addressChoice[highNibble](word);
+    } else if ((opRem === 2 || opRem === 6) && Math.floor(opcode / 16) < 4) {
 
-    } else if (isLdDouble) {
+    } else if (Math.floor(opcode / 16) > 0xD && opRem == 2) {
 
-    } else if (isLdDoubleToReg) {
+    } else if (opcode === 0xF8) {
+
+    } else if (opcode === 0xF9) {
 
     }
 }
@@ -251,21 +256,18 @@ class CPU {
         this.rom.write(this.sp--, lo);
     }
 
-    write(address, val) {
-        this.rom.write(address, val);
-    }
-
-    read(address) {
-        return this.rom.read(address);
-    }
-
-    read16(address) {
-        return this.rom.read16(address);
-    }
-
-    combineHL() {
-        return this.H << 8 | this.L;
-    }
+    write(address, val) { this.rom.write(address, val); }
+    read(address) { return this.rom.read(address); }
+    read16(address) { return this.rom.read16(address); }
+    combineHL() { return this.H << 8 | this.L; }
+    combineBC() { return this.B << 8 | this.C; }
+    combineDL() { return this.D << 8 | this.L; }
+    combineDE() { return this.D << 8 | this.E; }
+    setHL(word) { this.H = word >> 8; this.L = this.word & 0xFF; }
+    setBC(word) { this.B = word >> 8; this.C = this.word & 0xFF; }
+    setDL(word) { this.D = word >> 8; this.L = this.word & 0xFF; }
+    setDE(word) { this.D = word >> 8; this.E = this.word & 0xFF; }
+    setSP(word) { this.sp  = word; }
 }
 
 class ROMFile {
