@@ -14,3 +14,8 @@ anything super tricky with booting (as far as I can tell).
 * Make the emulator render a screen: I currently have no idea how to do this, but it's obviously important.
 * Make the emulator produce audio output: Likewise, plus learning the WebAudio API, which I've heard isn't all that nice.
 * Support Link's Awakening: That's all I'm going to aim for right now, but I'd like to aim higher later :)
+
+## Thanks to:
+* pastraiser.com for [this opcode table](http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
+* Jonathan Gilchrist for [this reference implementation](https://github.com/jgilchrist/emulator)
+* Michael Fogleman for a [clean emulator design reference](https://github.com/fogleman/nes)
