@@ -104,6 +104,14 @@ function writeReg(cpu, opcode, fun) {
 }
 
 function readReg(cpu, opcode) {
+    return readRegInternal(cpu, opcode, opcode => opcode % 8);
+}
+
+function readWriteReg(cpu, opcode) {
+    return readRegInternal(cpu, opcode, opcode => opcode >> 3);
+}
+
+function readRegInternal(cpu, opcode) {
     switch (opcode % 8) {
         case 0: return cpu.B;
         case 1: return cpu.C;
@@ -129,10 +137,11 @@ function cp(cpu) {
     cpu.F.C = diff < 0;
 }
 
+// TODO: REFACTOR REFACTOR REFACTOR
 function ld(cpu) {
     var opcode = cpu.read(cpu.pc++);
     var opRem = opcode % 8;
-    var highNibble= Math.floor(opcode / 16)
+    var highNibble= opcode >> 4;
     if (opcode === 0x8) {
         var address = cpu.read16(cpu.pc);
         cpu.write16(address, cpu.sp);
@@ -141,14 +150,47 @@ function ld(cpu) {
         var addressChoice = [cpu.setBC, cpu.setDE, cpu.setHL, cpu.setSP];
         var word = cpu.read16(cpu.pc);
         addressChoice[highNibble](word);
-    } else if ((opRem === 2 || opRem === 6) && Math.floor(opcode / 16) < 4) {
-
-    } else if (Math.floor(opcode / 16) > 0xD && opRem == 2) {
-
+        cpu.pc += 2;
+    } else if (opRem === 6 && highNibble < 4) {
+        var pos = highNibble + (opcode & 0xF === 0xE) ? 4 : 0;
+        var byte = cpu.read(cpu.pc++);
+        writeReg(cpu, opcode * 8, (opcode) => byte);
+    } else if (opRem === 2 && highNibble < 4) {
+        var hlDec = () => {
+            var tmp = cpu.combineHL();
+            cpu.setHL(tmp - 1);
+            return tmp;
+        };
+        var hlInc = () => {
+            var tmp = cpu.combineHL();
+            cpu.setHL(tmp + 1);
+            return tmp;
+        };
+        var value = [
+            cpu.combineBC,
+            cpu.combineDE,
+            hlInc,
+            hlDec][highNibble]();
+        if (opcode & 0xF === 0x2) {
+            cpu.A = value;
+        } else {
+            cpu.write(value, cpu.A);
+        }
+    } else if (highNibble > 0xD && opRem === 2) {
+        var val = opcode & 0xF === 0x2 ? 0xFF00 + cpu.C : cpu.read16(cpu.pc);
+        if (highNibble === 0xE) {
+            cpu.A = cpu.read(val);
+        } else {
+            cpu.write(val, cpu.A);
+        }
+        cpu.pc += opcode & 0xF === 0x2 ? 1 : 2; // but y tho
     } else if (opcode === 0xF8) {
-
+        var byte = cpu.read(cpu.pc++);
+        cpu.write16(cpu.combineHL(), cpu.sp + byte);
     } else if (opcode === 0xF9) {
-
+        cpu.write16(cpu.combineHL(), cpu.sp);
+    } else {
+        writeReg(cpu, opcode, reg => readWriteReg(opcode));
     }
 }
 
