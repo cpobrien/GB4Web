@@ -134,7 +134,8 @@ function ld(cpu) {
     var opRem = opcode % 8;
     var highNibble= Math.floor(opcode / 16)
     if (opcode === 0x8) {
-        //cpu.sp = cpu.read16(cpu.pc);
+        var address = cpu.read16(cpu.pc);
+        cpu.write16(address, cpu.sp);
         cpu.pc += 2;
     } else if (opRem === 1 && highNibble < 4) {
         var addressChoice = [cpu.setBC, cpu.setDE, cpu.setHL, cpu.setSP];
@@ -257,6 +258,7 @@ class CPU {
     }
 
     write(address, val) { this.rom.write(address, val); }
+    write16(address, val) { this.rom.write16(address, val); }
     read(address) { return this.rom.read(address); }
     read16(address) { return this.rom.read16(address); }
     combineHL() { return this.H << 8 | this.L; }
@@ -275,14 +277,14 @@ class ROMFile {
         this.rom = buffer;
     }
 
-    write(address, val) {
-        this.rom[address] = val;
+    write(address, val) { this.rom[address] = val; }
+    write16(address, val) {
+        var lo = val >> 8;
+        var hi = val & 0xFF;
+        this.write(address, lo);
+        this.write(address + 1, hi);
     }
-
-    read(address) {
-        return this.rom[address];
-    }
-
+    read(address) { return this.rom[address]; }
     read16(address) {
         var lo = this.rom[address];
         var hi = this.rom[address + 1];
