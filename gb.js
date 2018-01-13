@@ -1,12 +1,12 @@
 var opcodeMap = [
-    nop, ld, ld, nop, nop, nop, ld, nop,
-    nop, ld, ld, nop, nop, nop, ld, nop,
-    nop, ld, ld, nop, nop, nop, ld, nop,
-    jr, ld, ld, nop, nop, nop, ld, nop,
-    jr, nop, ld, nop, nop, nop, ld, nop,
-    jr, nop, ld, nop, nop, nop, ld, nop,
-    jr, nop, ld, nop, nop, nop, ld, nop,
-    jr, nop, ld, nop, nop, nop, ld, nop,
+    nop, ld, ld, halt, dec, halt, ld, halt,
+    halt, halt, ld, dec, halt, dec, ld, halt,
+    halt, ld, ld, halt, dec, halt, ld, halt,
+    jr, halt, ld, dec, halt, dec, ld, halt,
+    jr, ld, ld, halt, dec, halt, ld, halt,
+    jr, halt, ld, dec, halt, dec, ld, halt,
+    jr, ld, ld, halt, dec, halt, ld, halt,
+    jr, halt, ld, dec, halt, dec, ld, halt,
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
@@ -14,41 +14,41 @@ var opcodeMap = [
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
+    ld, ld, ld, ld, ld, ld, halt, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
-    ld, ld, ld, ld, ld, ld, ld, ld,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    xor, xor, xor, xor, xor, xor, xor, xor,
+    or, or, or, or, or, or, or, or,
     cp, cp, cp, cp, cp, cp, cp, cp,
-    nop, nop, nop, jp, nop, nop, nop, nop,
-    nop, nop, nop, cb, nop, call, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    ldh, nop, ld, nop, nop, nop, nop, nop,
-    nop, nop, ld, nop, nop, nop, nop, nop,
-    ldh, nop, ld, nop, nop, nop, nop, nop,
-    ld, ld, ld, nop, nop, nop, cp, nop
+    halt, halt, halt, jp, halt, halt, halt, halt,
+    halt, halt, halt, cb, halt, call, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    ldh, halt, ld, halt, halt, halt, halt, halt,
+    halt, halt, ld, halt, halt, halt, xor, halt,
+    ldh, halt, ld, halt, halt, halt, halt, halt,
+    ld, ld, ld, halt, halt, halt, cp, halt
 ];
 
 var cbOpcodeMap = [
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
-    nop, nop, nop, nop, nop, nop, nop, nop,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
+    halt, halt, halt, halt, halt, halt, halt, halt,
     res, res, res, res, res, res, res, res,
     res, res, res, res, res, res, res, res,
     res, res, res, res, res, res, res, res,
@@ -67,6 +67,10 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set,
     set, set, set, set, set, set, set, set
 ];
+
+function ret(cpu) {
+    cpu.pc = cpu.pop();
+}
 
 function res(cpu) {
     var opcode = cpu.read(cpu.pc);
@@ -88,7 +92,20 @@ function set(cpu) {
 
 function selectBit(opcode) { return Math.floor((opcode % 64) / 8) }
 function writeReg(cpu, opcode, fun) {
-   switch (opcode % 8) {
+   writeRegInternal(cpu, opcode, fun, op => op % 8)
+}
+
+function decideDec(op) {
+    var res = (op >> 8) * 2;
+    if (op & 0xF === 0xD) res++;
+    return res;
+}
+function writeRegDec(cpu, opcode, fun) {
+    writeRegInternal(cpu, opcode, fun, decideDec)
+}
+
+function writeRegInternal(cpu, opcode, fun, computeOp) {
+   switch (computeOp(opcode)) {
        case 0: cpu.B = fun(cpu.B); break;
        case 1: cpu.C = fun(cpu.C); break;
        case 2: cpu.D = fun(cpu.D); break;
@@ -103,6 +120,9 @@ function writeReg(cpu, opcode, fun) {
    }
 }
 
+function readRegDec(cpu, opcode) {
+    readRegInternal(cpu, opcode, decideDec);
+}
 function readReg(cpu, opcode) {
     return readRegInternal(cpu, opcode, opcode => opcode % 8);
 }
@@ -111,8 +131,8 @@ function readWriteReg(cpu, opcode) {
     return readRegInternal(cpu, opcode, opcode => opcode >> 3);
 }
 
-function readRegInternal(cpu, opcode) {
-    switch (opcode % 8) {
+function readRegInternal(cpu, opcode, fun) {
+    switch (fun(opcode)) {
         case 0: return cpu.B;
         case 1: return cpu.C;
         case 2: return cpu.D;
@@ -205,9 +225,25 @@ function ldh(cpu) {
     cpu.pc += 2;
 }
 
+function dec(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    if (opcode & 0xF === 0xB) {
+        switch (opcode >> 4) {
+            case 0: cpu.setBC(cpu.combineBC() - 1); return;
+            case 1: cpu.setDE(cpu.combineDE() - 1); return;
+            case 2: cpu.setHL(cpu.combineHL() - 1); return;
+            case 3: cpu.sp--; return;
+        }
+    }
+    writeRegDec(cpu, opcode, val => val - 1);
+    var res = readRegDec(cpu, opcode);
+    cpu.F.Z = res === 0;
+    cpu.F.N = 0;
+    cpu.H.H = res & 0xF === 0xF;
+}
 function cb(cpu) { cpu.cb = true; cpu.pc++; }
-
 function nop(cpu) { return cpu.pc++ }
+function halt(cpu) { return cpu.pc++ }
 
 function jr(cpu) {
     var opcode = cpu.read(cpu.pc);
@@ -217,6 +253,25 @@ function jr(cpu) {
         return;
     }
     cpu.pc = address;
+}
+
+function or(cpu) {
+    bitwise(cpu, (a, reg) => a | reg, 0xF6);
+}
+
+function xor(cpu) {
+    bitwise(cpu, (a, reg) => a ^ reg, 0xEE);
+}
+
+function bitwise(cpu, fun, other) {
+    var opcode = cpu.read(cpu.pc++);
+    var reg = readReg(cpu, opcode);
+    if (opcode === other) reg = cpu.read(cpu.pc++);
+    cpu.A = fun(cpu.A, reg);
+    cpu.F.Z = cpu.A === 0;
+    cpu.F.N = false;
+    cpu.F.H = false;
+    cpu.F.C = false;
 }
 
 function jp(cpu) { cpu.pc = cpu.read16(cpu.pc + 1); }
@@ -250,16 +305,11 @@ class CPU {
     }
 
     run() {
-        var nopCount = 0;
-        while (nopCount <= 1) {
+        while (true) {
             this.printState();
             var address = this.rom.read(this.pc);
             var op = opcodeMap[address];
-            if (this.cb) {
-                op = cbOpcodeMap[address];
-                this.cb = false;
-            }
-            if (op == nop) nopCount++; // ew
+            if (op === halt) break; // ew
             op(this);
         }
     }
