@@ -2,12 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Web Gameboy</title>
     <script type="text/javascript" src="gb.js"></script>
 </head>
 <body>
 <article>
-    <h2>Web Gameboy</h2>
+    <h1>Web Gameboy</h1>
+    <canvas id="gb"></canvas>
     <p>
         There's currently not a whole lot here! That makes sense, as I haven't gotten
         around to rendering anything yet, as I barely have any opcodes done. Once
@@ -17,29 +20,47 @@
 </body>
 <style>
     body {
-        max-width: 500px;
-        margin: auto;
-        font-size: 1.25em;
+        margin:0px;
+        padding:0px;
+        width:100%;
+        background: black;
+        font-family: Courier;
+        color: greenyellow;
+    }
+
+    #gb {
+        width: 100%;
+        height: 320px;
     }
     article {
-        border: solid 5px;
+        width: 100%;
+        border: solid 5px greenyellow;
     }
-    h2 {
+    h1 {
+        font-size: 200%;
         text-align: center;
         letter-spacing: 5px;
         text-transform: uppercase;
-        background: black;
-        color: white;
         margin: 0;
         padding: 0 10px 10px;
     }
     p {
+        text-align: center;
         margin: 0;
         line-height: 1.7;
         padding: 10px;
     }
     ::selection {
-        background: yellow;
+        color: white;
+        background: greenyellow;
+        opacity: 1;
+    }
+    
+    @media (min-device-width: 769px) {
+        body {
+            max-width: 500px;
+            margin: auto;
+        }
     }
 </style>
 </html>
