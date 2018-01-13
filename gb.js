@@ -23,10 +23,10 @@ var opcodeMap = [
     xor, xor, xor, xor, xor, xor, xor, xor,
     or, or, or, or, or, or, or, or,
     cp, cp, cp, cp, cp, cp, cp, cp,
-    halt, halt, halt, jp, halt, halt, halt, halt,
-    halt, halt, halt, cb, halt, call, halt, halt,
-    halt, halt, halt, halt, halt, halt, halt, halt,
-    halt, halt, halt, halt, halt, halt, halt, halt,
+    ret, halt, halt, jp, halt, halt, halt, halt,
+    ret, ret, halt, cb, halt, call, halt, halt,
+    ret, halt, halt, halt, halt, halt, halt, halt,
+    ret, ret, halt, halt, halt, halt, halt, halt,
     ldh, halt, ld, halt, halt, halt, halt, halt,
     halt, halt, ld, halt, halt, halt, xor, halt,
     ldh, halt, ld, halt, halt, halt, halt, halt,
@@ -69,7 +69,11 @@ var cbOpcodeMap = [
 ];
 
 function ret(cpu) {
-    cpu.pc = cpu.pop();
+    var opcode = cpu.read(cpu.pc++);
+    if (opcode === 0xD9) cpu.int = true;
+    if (cpu.shouldJump(opcode)) {
+        cpu.pc = cpu.pop();
+    }
 }
 
 function res(cpu) {
@@ -288,6 +292,7 @@ class CPU {
         this.pc = 0x100;
         this.sp = 0xFFFE;
         this.cb = false;
+        this.int = true;
 
         this.A = 0;
         this.B = 0;
@@ -315,18 +320,23 @@ class CPU {
     }
 
     shouldJump(opcode) {
+        // TODO: there's gotta be some clever way to simplify this
         switch (opcode) {
             // NZ
             case 0x20:
+            case 0xC0:
             case 0xC2: return !this.F.Z;
             // NC
             case 0x30:
+            case 0xD0:
             case 0xD2: return !this.F.C;
             // Z
             case 0x28:
+            case 0xC8:
             case 0xCA: return this.F.Z;
             // C
             case 0x38:
+            case 0xD8:
             case 0xDA: return this.F.C;
         }
         return true;
