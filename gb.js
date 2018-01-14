@@ -23,14 +23,14 @@ var opcodeMap = [
     xor, xor, xor, xor, xor, xor, xor, xor,
     or, or, or, or, or, or, or, or,
     cp, cp, cp, cp, cp, cp, cp, cp,
-    ret, pop, jp, jp, halt, push, add, halt,
-    ret, ret, jp, cb, halt, call, halt, halt,
-    ret, pop, jp, halt, halt, push, sub, halt,
-    ret, ret, jp, halt, halt, halt, sbc, halt,
-    ldh, pop, ld, halt, halt, push, and, add,
-    halt, jp, ld, halt, halt, halt, xor, halt,
-    ldh, pop, ld, halt, halt, push, or, halt,
-    ld, ld, ld, halt, halt, halt, cp, halt
+    ret, pop, jp, jp, halt, push, add, rst,
+    ret, ret, jp, cb, halt, call, halt, rst,
+    ret, pop, jp, halt, halt, push, sub, rst,
+    ret, ret, jp, halt, halt, halt, sbc, rst,
+    ldh, pop, ld, halt, halt, push, and, rst,
+    halt, jp, ld, halt, halt, halt, xor, rst,
+    ldh, pop, ld, halt, halt, push, or, rst,
+    ld, ld, ld, halt, halt, halt, cp, rst
 ];
 
 var cbOpcodeMap = [
@@ -67,6 +67,14 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set,
     set, set, set, set, set, set, set, set
 ];
+
+function rst(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    var rstValues = [0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38];
+    var row = (opcode >> 4) - 0xC;
+    var column = opcode & 0xF;
+    cpu.pushByte(rstValues[(2 * row) + (column === 0xF)]);
+}
 
 function rr(cpu) {
     var opcode = cpu.read(cpu.pc++);
@@ -492,16 +500,19 @@ class CPU {
         console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name}`)
     }
 
+    popByte() { return this.rom.read(this.sp++); }
     pop() {
-        var lo = this.rom.read(this.sp++);
-        var hi = this.rom.read(this.sp++);
+        var lo = this.popByte();
+        var hi = this.popByte();
         return hi << 8 | lo;
     }
+
+    pushByte(val) { this.rom.write(this.sp--, val); }
     push(val) {
         var lo = val & 0xFF;
         var hi = val >> 8;
-        this.rom.write(this.sp--, hi);
-        this.rom.write(this.sp--, lo);
+        this.pushByte(hi);
+        this.pushByte(lo);
     }
 
     write(address, val) { this.rom.write(address, val); }
