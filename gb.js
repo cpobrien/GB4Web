@@ -18,7 +18,7 @@ var opcodeMap = [
     add, add, add, add, add, add, add, add,
     halt, halt, halt, halt, halt, halt, halt, halt,
     halt, halt, halt, halt, halt, halt, halt, halt,
-    halt, halt, halt, halt, halt, halt, halt, halt,
+    sbc, sbc, sbc, sbc, sbc, sbc, sbc, sbc,
     halt, halt, halt, halt, halt, halt, halt, halt,
     xor, xor, xor, xor, xor, xor, xor, xor,
     or, or, or, or, or, or, or, or,
@@ -26,7 +26,7 @@ var opcodeMap = [
     ret, halt, halt, jp, halt, halt, add, halt,
     ret, ret, halt, cb, halt, call, halt, halt,
     ret, halt, halt, halt, halt, halt, halt, halt,
-    ret, ret, halt, halt, halt, halt, halt, halt,
+    ret, ret, halt, halt, halt, halt, sbc, halt,
     ldh, halt, ld, halt, halt, halt, halt, add,
     halt, halt, ld, halt, halt, halt, xor, halt,
     ldh, halt, ld, halt, halt, halt, halt, halt,
@@ -67,6 +67,19 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set,
     set, set, set, set, set, set, set, set
 ];
+
+function sbc(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    var originalValue = cpu.A;
+    var val = readReg(cpu, opcode);
+    if (opcode === 0xDE) val = cpu.read(cpu.pc++);
+    var res = originalValue - val - cpu.F.C;
+    cpu.F.Z = res === 0;
+    cpu.F.N = true;
+    cpu.F.H = ((originalValue & 0xF) - (val & 0xF) - cpu.F.C ) < 0;
+    cpu.F.C = res < 0;
+    cpu.A = res;
+}
 
 // TODO: account for overflow
 function add(cpu) {
