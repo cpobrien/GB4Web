@@ -1,12 +1,12 @@
 var opcodeMap = [
     nop, ld, ld, halt, dec, halt, ld, halt,
-    halt, halt, ld, dec, halt, dec, ld, halt,
+    halt, add, ld, dec, halt, dec, ld, halt,
     halt, ld, ld, halt, dec, halt, ld, halt,
-    jr, halt, ld, dec, halt, dec, ld, halt,
+    jr, add, ld, dec, halt, dec, ld, halt,
     jr, ld, ld, halt, dec, halt, ld, halt,
-    jr, halt, ld, dec, halt, dec, ld, halt,
+    jr, add, ld, dec, halt, dec, ld, halt,
     jr, ld, ld, halt, dec, halt, ld, halt,
-    jr, halt, ld, dec, halt, dec, ld, halt,
+    jr, add, ld, dec, halt, dec, ld, halt,
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
@@ -15,7 +15,7 @@ var opcodeMap = [
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, halt, ld,
-    ld, ld, ld, ld, ld, ld, ld, ld,
+    add, add, add, add, add, add, add, add,
     halt, halt, halt, halt, halt, halt, halt, halt,
     halt, halt, halt, halt, halt, halt, halt, halt,
     halt, halt, halt, halt, halt, halt, halt, halt,
@@ -23,11 +23,11 @@ var opcodeMap = [
     xor, xor, xor, xor, xor, xor, xor, xor,
     or, or, or, or, or, or, or, or,
     cp, cp, cp, cp, cp, cp, cp, cp,
-    ret, halt, halt, jp, halt, halt, halt, halt,
+    ret, halt, halt, jp, halt, halt, add, halt,
     ret, ret, halt, cb, halt, call, halt, halt,
     ret, halt, halt, halt, halt, halt, halt, halt,
     ret, ret, halt, halt, halt, halt, halt, halt,
-    ldh, halt, ld, halt, halt, halt, halt, halt,
+    ldh, halt, ld, halt, halt, halt, halt, add,
     halt, halt, ld, halt, halt, halt, xor, halt,
     ldh, halt, ld, halt, halt, halt, halt, halt,
     ld, ld, ld, halt, halt, halt, cp, halt
@@ -67,6 +67,44 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set,
     set, set, set, set, set, set, set, set
 ];
+
+// TODO: account for overflow
+function add(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    var highNibble = opcode >> 4;
+    var originalValue = cpu.A;
+    if (opcode === 0xE8) originalValue = cpu.sp;
+    var val = readReg(cpu, opcode);
+    if (opcode === 0xC6 || opcode === 0xE8) val = cpu.read(cpu.pc++);
+    if (opcode === 0xE8) {
+        cpu.sp = originalValue + val;
+        var carry = originalValue ^ val ^ (cpu.sp ^ 0xFFFF);
+        cpu.F.Z = false;
+        cpu.F.N = false;
+        cpu.F.H = carry & 0x10 === 0x10;
+        cpu.F.C = carry & 0x100 === 0x100;
+        return;
+    }
+    if (highNibble < 4) {
+        originalValue = cpu.combineHL();
+        val = [cpu.combineBC(),
+            cpu.combineDE(),
+            cpu.combineHL(),
+            cpu.sp][highNibble];
+        var res = originalValue + val;
+
+        cpu.F.N = false;
+        cpu.F.H = (originalValue & 0xFFF) + (val & 0xFFF) > 0xFFF;
+        cpu.F.C = !(res & 0x10000);
+        cpu.setHL(res);
+        return;
+    }
+    cpu.A = originalValue + val;
+    cpu.F.Z = cpu.A === 0;
+    cpu.F.N = false;
+    cpu.F.H = ((val & 0xF) + (originalValue & 0xF) > 0xF);
+    cpu.F.C = cpu.A & 0x100 !== 0;
+}
 
 function ret(cpu) {
     var opcode = cpu.read(cpu.pc++);
