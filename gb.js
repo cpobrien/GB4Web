@@ -14,12 +14,12 @@ var opcodeMap = [
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, halt, ld,
-    ld, ld, ld, ld, ld, ld, halt, ld,
+    ld, ld, ld, ld, ld, ld, ld, ld,
     add, add, add, add, add, add, add, add,
     halt, halt, halt, halt, halt, halt, halt, halt,
     sub, sub, sub, sub, sub, sub, sub, sub,
     sbc, sbc, sbc, sbc, sbc, sbc, sbc, sbc,
-    halt, halt, halt, halt, halt, halt, halt, halt,
+    and, and, and, and, and, and, and, and,
     xor, xor, xor, xor, xor, xor, xor, xor,
     or, or, or, or, or, or, or, or,
     cp, cp, cp, cp, cp, cp, cp, cp,
@@ -27,7 +27,7 @@ var opcodeMap = [
     ret, ret, jp, cb, halt, call, halt, halt,
     ret, halt, jp, halt, halt, halt, sub, halt,
     ret, ret, jp, halt, halt, halt, sbc, halt,
-    ldh, halt, ld, halt, halt, halt, halt, add,
+    ldh, halt, ld, halt, halt, halt, and, add,
     halt, jp, ld, halt, halt, halt, xor, halt,
     ldh, halt, ld, halt, halt, halt, halt, halt,
     ld, ld, ld, halt, halt, halt, cp, halt
@@ -67,6 +67,14 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set,
     set, set, set, set, set, set, set, set
 ];
+
+function push() {
+    
+}
+
+function pop() {
+    
+}
 
 function sbc(cpu) {
     var opcode = cpu.read(cpu.pc++);
@@ -340,6 +348,11 @@ function jr(cpu) {
     cpu.pc = address;
 }
 
+function and(cpu) {
+    bitwise(cpu, (a, reg) => a & reg, 0xE6);
+    cpu.F.H = true;
+}
+
 function or(cpu) {
     bitwise(cpu, (a, reg) => a | reg, 0xF6);
 }
@@ -458,12 +471,14 @@ class CPU {
     write16(address, val) { this.rom.write16(address, val); }
     read(address) { return this.rom.read(address); }
     read16(address) { return this.rom.read16(address); }
+    combineAF() { return this.A << 8 | this.F; }
     combineHL() { return this.H << 8 | this.L; }
     combineBC() { return this.B << 8 | this.C; }
     combineDE() { return this.D << 8 | this.E; }
-    setHL(word) { this.H = word >> 8; this.L = this.word & 0xFF; }
-    setBC(word) { this.B = word >> 8; this.C = this.word & 0xFF; }
-    setDE(word) { this.D = word >> 8; this.E = this.word & 0xFF; }
+    setAF(word) { this.A = word >> 8; this.F = word & 0xFF; }
+    setHL(word) { this.H = word >> 8; this.L = word & 0xFF; }
+    setBC(word) { this.B = word >> 8; this.C = word & 0xFF; }
+    setDE(word) { this.D = word >> 8; this.E = word & 0xFF; }
     setSP(word) { this.sp  = word; }
 }
 
