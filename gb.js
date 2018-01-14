@@ -249,9 +249,13 @@ function ld(cpu) {
         cpu.write16(address, cpu.sp);
         cpu.pc += 2;
     } else if (opRem === 1 && highNibble < 4) {
-        var addressChoice = [cpu.setBC, cpu.setDE, cpu.setHL, cpu.setSP];
         var word = cpu.read16(cpu.pc);
-        addressChoice[highNibble](word);
+        switch (highNibble) {
+            case 0: cpu.setBC(word); break;
+            case 1: cpu.setDE(word); break;
+            case 2: cpu.setHL(word); break;
+            case 3: cpu.setSP(word); break;
+        }
         cpu.pc += 2;
     } else if (opRem === 6 && highNibble < 4) {
         var pos = highNibble + (opcode & 0xF === 0xE) ? 4 : 0;
