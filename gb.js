@@ -86,6 +86,9 @@ function sbc(cpu) {
     cpu.F.N = true;
     cpu.F.H = ((originalValue & 0xF) - (val & 0xF) - cpu.F.C ) < 0;
     cpu.F.C = res < 0;
+    if (res < 0) {
+        res += 256;
+    }
     cpu.A = res;
 }
 
@@ -99,6 +102,9 @@ function sub(cpu) {
     cpu.F.N = true;
     cpu.F.C = res < 0;
     cpu.F.H = (originalValue & 0xF) - (val & 0xF) < 0;
+    if (res < 0) {
+        res += 256;
+    }
     cpu.A = res;
 }
 
@@ -133,7 +139,7 @@ function add(cpu) {
         cpu.setHL(res);
         return;
     }
-    cpu.A = originalValue + val;
+    cpu.A = (originalValue + val) % 256;
     cpu.F.Z = cpu.A === 0;
     cpu.F.N = false;
     cpu.F.H = ((val & 0xF) + (originalValue & 0xF) > 0xF);
@@ -422,6 +428,9 @@ class CPU {
             this.printState(op);
             if (op === halt) {
                 break;
+            }
+            if (curPC === 0xa309) {
+                console.log("YOU AGAIN");
             }
             op(this);
         }
