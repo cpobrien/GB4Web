@@ -1,6 +1,6 @@
 var opcodeMap = [
     nop, ld, ld, inc, inc, dec, ld, halt,
-    halt, add, ld, dec, inc, dec, ld, halt,
+    ld, add, ld, dec, inc, dec, ld, halt,
     halt, ld, ld, inc, inc, dec, ld, halt,
     jr, add, ld, dec, inc, dec, ld, rr,
     jr, ld, ld, inc, inc, dec, ld, halt,
@@ -29,7 +29,7 @@ var opcodeMap = [
     ret, ret, jp, halt, halt, halt, sbc, halt,
     ldh, pop, ld, halt, halt, push, and, add,
     halt, jp, ld, halt, halt, halt, xor, halt,
-    ldh, pop, ld, halt, halt, push, halt, halt,
+    ldh, pop, ld, halt, halt, push, or, halt,
     ld, ld, ld, halt, halt, halt, cp, halt
 ];
 
