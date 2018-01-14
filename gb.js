@@ -23,13 +23,13 @@ var opcodeMap = [
     xor, xor, xor, xor, xor, xor, xor, xor,
     or, or, or, or, or, or, or, or,
     cp, cp, cp, cp, cp, cp, cp, cp,
-    ret, halt, jp, jp, halt, halt, add, halt,
+    ret, pop, jp, jp, halt, push, add, halt,
     ret, ret, jp, cb, halt, call, halt, halt,
-    ret, halt, jp, halt, halt, halt, sub, halt,
+    ret, pop, jp, halt, halt, push, sub, halt,
     ret, ret, jp, halt, halt, halt, sbc, halt,
-    ldh, halt, ld, halt, halt, halt, and, add,
+    ldh, pop, ld, halt, halt, push, and, add,
     halt, jp, ld, halt, halt, halt, xor, halt,
-    ldh, halt, ld, halt, halt, halt, halt, halt,
+    ldh, pop, ld, halt, halt, push, halt, halt,
     ld, ld, ld, halt, halt, halt, cp, halt
 ];
 
@@ -68,12 +68,24 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set
 ];
 
-function push() {
-    
+function push(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    switch ((opcode >> 4) - 0xC) {
+        case 0: cpu.push(cpu.combineBC()); return;
+        case 1: cpu.push(cpu.combineDE()); return;
+        case 2: cpu.push(cpu.combineHL()); return;
+        case 3: cpu.push(cpu.combineAF()); return;
+    }
 }
 
-function pop() {
-    
+function pop(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    switch ((opcode >> 4) - 0xC) {
+        case 0: cpu.setBC(cpu.pop()); return;
+        case 1: cpu.setDE(cpu.pop()); return;
+        case 2: cpu.setHL(cpu.pop()); return;
+        case 3: cpu.setAF(cpu.pop()); return;
+    }
 }
 
 function sbc(cpu) {
