@@ -17,7 +17,7 @@ var opcodeMap = [
     ld, ld, ld, ld, ld, ld, halt, ld,
     add, add, add, add, add, add, add, add,
     halt, halt, halt, halt, halt, halt, halt, halt,
-    halt, halt, halt, halt, halt, halt, halt, halt,
+    sub, sub, sub, sub, sub, sub, sub, sub,
     sbc, sbc, sbc, sbc, sbc, sbc, sbc, sbc,
     halt, halt, halt, halt, halt, halt, halt, halt,
     xor, xor, xor, xor, xor, xor, xor, xor,
@@ -25,7 +25,7 @@ var opcodeMap = [
     cp, cp, cp, cp, cp, cp, cp, cp,
     ret, halt, jp, jp, halt, halt, add, halt,
     ret, ret, jp, cb, halt, call, halt, halt,
-    ret, halt, jp, halt, halt, halt, halt, halt,
+    ret, halt, jp, halt, halt, halt, sub, halt,
     ret, ret, jp, halt, halt, halt, sbc, halt,
     ldh, halt, ld, halt, halt, halt, halt, add,
     halt, jp, ld, halt, halt, halt, xor, halt,
@@ -78,6 +78,19 @@ function sbc(cpu) {
     cpu.F.N = true;
     cpu.F.H = ((originalValue & 0xF) - (val & 0xF) - cpu.F.C ) < 0;
     cpu.F.C = res < 0;
+    cpu.A = res;
+}
+
+function sub(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    var originalValue = cpu.A;
+    var val = readReg(cpu, opcode);
+    if (opcode === 0xD6) val = cpu.read(cpu.pc++);
+    var res = originalValue - val;
+    cpu.F.Z = res === 0;
+    cpu.F.N = true;
+    cpu.F.C = res < 0;
+    cpu.F.H = (originalValue & 0xF) - (val & 0xF) < 0;
     cpu.A = res;
 }
 
