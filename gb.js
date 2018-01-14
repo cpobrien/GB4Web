@@ -13,7 +13,7 @@ var opcodeMap = [
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
-    ld, ld, ld, ld, ld, ld, ld, ld,
+    ld, ld, ld, ld, ld, ld, halt, ld,
     ld, ld, ld, ld, ld, ld, halt, ld,
     add, add, add, add, add, add, add, add,
     halt, halt, halt, halt, halt, halt, halt, halt,
@@ -196,7 +196,7 @@ function readReg(cpu, opcode) {
 }
 
 function readWriteReg(cpu, opcode) {
-    return readRegInternal(cpu, opcode, opcode => opcode >> 3);
+    return readRegInternal(cpu, opcode, opcode => (opcode - 0x40) >> 3);
 }
 
 function readRegInternal(cpu, opcode, fun) {
@@ -278,7 +278,7 @@ function ld(cpu) {
     } else if (opcode === 0xF9) {
         cpu.write16(cpu.combineHL(), cpu.sp);
     } else {
-        writeReg(cpu, opcode, reg => readWriteReg(opcode));
+        writeReg(cpu, opcode, reg => readWriteReg(cpu, opcode));
     }
 }
 
@@ -382,10 +382,17 @@ class CPU {
 
     run() {
         while (true) {
-            this.printState();
-            var address = this.rom.read(this.pc);
+            var curPC = this.pc;
+            var address = this.rom.read(curPC);
             var op = opcodeMap[address];
-            if (op === halt) break; // ew
+            if (this.cb) {
+                op = cbOpcodeMap[address];
+                this.cb = false;
+            }
+            this.printState(op);
+            if (op === halt) {
+                break;
+            }
             op(this);
         }
     }
@@ -413,9 +420,9 @@ class CPU {
         return true;
     }
 
-    printState() {
+    printState(op) {
         var pos = this.pc;
-        console.log(`PC: 0x${pos.toHex()} [${this.rom.read(pos).toHex()}]`)
+        console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name}`)
     }
 
     pop() {
