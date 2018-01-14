@@ -2,7 +2,7 @@ var opcodeMap = [
     nop, ld, ld, inc, inc, dec, ld, halt,
     halt, add, ld, dec, inc, dec, ld, halt,
     halt, ld, ld, inc, inc, dec, ld, halt,
-    jr, add, ld, dec, inc, dec, ld, halt,
+    jr, add, ld, dec, inc, dec, ld, rr,
     jr, ld, ld, inc, inc, dec, ld, halt,
     jr, add, ld, dec, inc, dec, ld, halt,
     jr, ld, ld, inc, inc, dec, ld, halt,
@@ -37,7 +37,7 @@ var cbOpcodeMap = [
     halt, halt, halt, halt, halt, halt, halt, halt,
     halt, halt, halt, halt, halt, halt, halt, halt,
     halt, halt, halt, halt, halt, halt, halt, halt,
-    halt, halt, halt, halt, halt, halt, halt, halt,
+    rr, rr, rr, rr, rr, rr, rr, rr,
     halt, halt, halt, halt, halt, halt, halt, halt,
     halt, halt, halt, halt, halt, halt, halt, halt,
     halt, halt, halt, halt, halt, halt, halt, halt,
@@ -67,6 +67,18 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set,
     set, set, set, set, set, set, set, set
 ];
+
+function rr(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    writeReg(cpu, opcode, reg => {
+        var res = reg >> 1 | (reg & 1) << 7;
+        cpu.F.C = reg & 1 === 1;
+        cpu.F.Z = res === 0;
+        cpu.F.N = false;
+        cpu.F.H = false;
+        return res;
+    });
+}
 
 function push(cpu) {
     var opcode = cpu.read(cpu.pc++);
