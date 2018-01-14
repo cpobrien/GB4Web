@@ -424,7 +424,7 @@ function jp(cpu) {
 }
 
 function call(cpu) {
-    cpu.push(cpu.pc);
+    cpu.push(cpu.pc + 3);
     cpu.pc = cpu.read16(cpu.pc + 1);
 }
 
@@ -519,15 +519,31 @@ class CPU {
     write16(address, val) { this.rom.write16(address, val); }
     read(address) { return this.rom.read(address); }
     read16(address) { return this.rom.read16(address); }
-    combineAF() { return this.A << 8 | this.F; }
+    combineAF() { return this.A << 8 | this.flagsToByte(); }
     combineHL() { return this.H << 8 | this.L; }
     combineBC() { return this.B << 8 | this.C; }
     combineDE() { return this.D << 8 | this.E; }
-    setAF(word) { this.A = word >> 8; this.F = word & 0xFF; }
+    setAF(word) { this.A = word >> 8; this.F = this.setF(word & 0xFF); }
     setHL(word) { this.H = word >> 8; this.L = word & 0xFF; }
     setBC(word) { this.B = word >> 8; this.C = word & 0xFF; }
     setDE(word) { this.D = word >> 8; this.E = word & 0xFF; }
     setSP(word) { this.sp  = word; }
+    flagsToByte() {
+        var res = 0;
+        res |= this.F.Z << 7;
+        res |= this.F.N << 6;
+        res |= this.F.H << 5;
+        res |= this.F.C << 4;
+        return res;
+    }
+    setF(byte) {
+        return {
+            Z : byte & 0x80 !== 0,
+            N : byte & 0x20 !== 0,
+            H : byte & 0x20 !== 0,
+            C : byte & 0x10 !== 0
+    };
+    }
 }
 
 class ROMFile {
