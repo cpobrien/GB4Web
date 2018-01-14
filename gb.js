@@ -1,12 +1,12 @@
 var opcodeMap = [
-    nop, ld, ld, halt, dec, halt, ld, halt,
-    halt, add, ld, dec, halt, dec, ld, halt,
-    halt, ld, ld, halt, dec, halt, ld, halt,
-    jr, add, ld, dec, halt, dec, ld, halt,
-    jr, ld, ld, halt, dec, halt, ld, halt,
-    jr, add, ld, dec, halt, dec, ld, halt,
-    jr, ld, ld, halt, dec, halt, ld, halt,
-    jr, add, ld, dec, halt, dec, ld, halt,
+    nop, ld, ld, inc, inc, dec, ld, halt,
+    halt, add, ld, dec, inc, dec, ld, halt,
+    halt, ld, ld, inc, inc, dec, ld, halt,
+    jr, add, ld, dec, inc, dec, ld, halt,
+    jr, ld, ld, inc, inc, dec, ld, halt,
+    jr, add, ld, dec, inc, dec, ld, halt,
+    jr, ld, ld, inc, inc, dec, ld, halt,
+    jr, add, ld, dec, inc, dec, ld, halt,
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
     ld, ld, ld, ld, ld, ld, ld, ld,
@@ -163,13 +163,13 @@ function writeReg(cpu, opcode, fun) {
    writeRegInternal(cpu, opcode, fun, op => op % 8)
 }
 
-function decideDec(op) {
+function decideInc(op) { return decideInternal(op, 0xC); }
+function decideDec(op) { return decideInternal(op, 0xD); }
+
+function decideInternal(op, lowNibble) {
     var res = (op >> 8) * 2;
-    if (op & 0xF === 0xD) res++;
+    if (op & 0xF === lowNibble) res++;
     return res;
-}
-function writeRegDec(cpu, opcode, fun) {
-    writeRegInternal(cpu, opcode, fun, decideDec)
 }
 
 function writeRegInternal(cpu, opcode, fun, computeOp) {
@@ -293,22 +293,39 @@ function ldh(cpu) {
     cpu.pc += 2;
 }
 
+function inc(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    if (opcode & 0xF === 0xB) {
+        computeCombinedRegisters(cpu, opcode, (op) => op + 1);
+        return;
+    }
+    writeRegInternal(cpu, opcode, val => val + 1, decideInc);
+    cpu.F.Z = res === 0;
+    cpu.F.N = 0;
+    cpu.H.H = res & 0xF === 0x0;
+}
+
 function dec(cpu) {
     var opcode = cpu.read(cpu.pc++);
     if (opcode & 0xF === 0xB) {
-        switch (opcode >> 4) {
-            case 0: cpu.setBC(cpu.combineBC() - 1); return;
-            case 1: cpu.setDE(cpu.combineDE() - 1); return;
-            case 2: cpu.setHL(cpu.combineHL() - 1); return;
-            case 3: cpu.sp--; return;
-        }
+        computeCombinedRegisters(cpu, opcode, (op) => op - 1);
+        return;
     }
-    writeRegDec(cpu, opcode, val => val - 1);
+    writeRegInternal(cpu, opcode, val => val - 1, decideDec);
     var res = readRegDec(cpu, opcode);
     cpu.F.Z = res === 0;
     cpu.F.N = 0;
     cpu.H.H = res & 0xF === 0xF;
 }
+function computeCombinedRegisters(cpu, opcode, fun) {
+    switch (opcode >> 4) {
+        case 0: cpu.setBC(fun(cpu.combineBC())); return;
+        case 1: cpu.setDE(fun(cpu.combineDE())); return;
+        case 2: cpu.setHL(fun(cpu.combineHL())); return;
+        case 3: cpu.sp = fun(cpu.sp); return;
+    }
+}
+
 function cb(cpu) { cpu.cb = true; cpu.pc++; }
 function nop(cpu) { return cpu.pc++ }
 function halt(cpu) { return cpu.pc++ }
@@ -443,11 +460,9 @@ class CPU {
     read16(address) { return this.rom.read16(address); }
     combineHL() { return this.H << 8 | this.L; }
     combineBC() { return this.B << 8 | this.C; }
-    combineDL() { return this.D << 8 | this.L; }
     combineDE() { return this.D << 8 | this.E; }
     setHL(word) { this.H = word >> 8; this.L = this.word & 0xFF; }
     setBC(word) { this.B = word >> 8; this.C = this.word & 0xFF; }
-    setDL(word) { this.D = word >> 8; this.L = this.word & 0xFF; }
     setDE(word) { this.D = word >> 8; this.E = this.word & 0xFF; }
     setSP(word) { this.sp  = word; }
 }
