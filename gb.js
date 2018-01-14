@@ -23,12 +23,12 @@ var opcodeMap = [
     xor, xor, xor, xor, xor, xor, xor, xor,
     or, or, or, or, or, or, or, or,
     cp, cp, cp, cp, cp, cp, cp, cp,
-    ret, halt, halt, jp, halt, halt, add, halt,
-    ret, ret, halt, cb, halt, call, halt, halt,
-    ret, halt, halt, halt, halt, halt, halt, halt,
-    ret, ret, halt, halt, halt, halt, sbc, halt,
+    ret, halt, jp, jp, halt, halt, add, halt,
+    ret, ret, jp, cb, halt, call, halt, halt,
+    ret, halt, jp, halt, halt, halt, halt, halt,
+    ret, ret, jp, halt, halt, halt, sbc, halt,
     ldh, halt, ld, halt, halt, halt, halt, add,
-    halt, halt, ld, halt, halt, halt, xor, halt,
+    halt, jp, ld, halt, halt, halt, xor, halt,
     ldh, halt, ld, halt, halt, halt, halt, halt,
     ld, ld, ld, halt, halt, halt, cp, halt
 ];
@@ -329,7 +329,14 @@ function bitwise(cpu, fun, other) {
     cpu.F.C = false;
 }
 
-function jp(cpu) { cpu.pc = cpu.read16(cpu.pc + 1); }
+function jp(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    var newAddress = cpu.read16(cpu.pc);
+    if (opcode === 0xE9) newAddress = cpu.combineHL();
+    if (cpu.shouldJump(opcode)) {
+        cpu.pc = newAddress;
+    }
+}
 
 function call(cpu) {
     cpu.push(cpu.pc);
