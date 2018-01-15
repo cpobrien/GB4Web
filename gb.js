@@ -38,7 +38,7 @@ var cbOpcodeMap = [
     halt, halt, halt, halt, halt, halt, halt, halt,
     halt, halt, halt, halt, halt, halt, halt, halt,
     rr, rr, rr, rr, rr, rr, rr, rr,
-    halt, halt, halt, halt, halt, halt, halt, halt,
+    sla, sla, sla, sla, sla, sla, sla, sla,
     halt, halt, halt, halt, halt, halt, halt, halt,
     halt, halt, halt, halt, halt, halt, halt, halt,
     halt, halt, halt, halt, halt, halt, halt, halt,
@@ -67,6 +67,7 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set,
     set, set, set, set, set, set, set, set
 ];
+
 
 function cpl(cpu) {
    cpu.A = ~cpu.A;
@@ -204,13 +205,24 @@ function ret(cpu) {
     }
 }
 
+function sla(cpu) {
+    var opcode = cpu.read(cpu.pc++);
+    writeReg(cpu, opcode, reg => {
+        var res = (reg << 1) & 0xFF;
+        cpu.F.C = reg & 1 === 1;
+        cpu.F.Z = res === 0;
+        cpu.F.H = false;
+        cpu.F.N = false;
+        return res;
+    });
+}
+
 function res(cpu) {
-    var opcode = cpu.read(cpu.pc);
+    var opcode = cpu.read(cpu.pc++);
     writeReg(cpu, opcode, reg => {
         var bit = selectBit(opcode);
         return reg & ~(1 << bit);
     });
-    cpu.pc++;
 }
 
 function set(cpu) {
