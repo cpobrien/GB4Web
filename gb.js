@@ -4,7 +4,7 @@ var opcodeMap = [
     halt, ld, ld, inc, inc, dec, ld, halt,
     jr, add, ld, dec, inc, dec, ld, rr,
     jr, ld, ld, inc, inc, dec, ld, halt,
-    jr, add, ld, dec, inc, dec, ld, halt,
+    jr, add, ld, dec, inc, dec, ld, cpl,
     jr, ld, ld, inc, inc, dec, ld, halt,
     jr, add, ld, dec, inc, dec, ld, halt,
     ld, ld, ld, ld, ld, ld, ld, ld,
@@ -67,6 +67,13 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set,
     set, set, set, set, set, set, set, set
 ];
+
+function cpl(cpu) {
+   cpu.A = ~cpu.A;
+   cpu.F.N = true;
+   cpu.F.H = true;
+   cpu.pc++;
+}
 
 function di(cpu) { cpu.int = false; cpu.pc++ }
 function ei(cpu) { cpu.int = true; cpu.pc++ }
@@ -456,6 +463,8 @@ class CPU {
         };
         this.H = 1;
         this.L = 0x4d;
+
+        this.callNum = 0;
     }
 
     run() {
@@ -500,7 +509,7 @@ class CPU {
 
     printState(op) {
         var pos = this.pc;
-        console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name}`)
+        console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name} instruction #${++this.callNum}`)
     }
 
     popByte() {
