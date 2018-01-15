@@ -179,7 +179,7 @@ function add(cpu) {
         cpu.F.N = false;
         cpu.F.H = (originalValue & 0xFFF) + (val & 0xFFF) > 0xFFF;
         cpu.F.C = !(res & 0x10000);
-        cpu.setHL(res);
+        cpu.setHL(res % 0xFFFF);
         return;
     }
     cpu.A = (originalValue + val) % 256;
@@ -551,7 +551,10 @@ class CPU {
     combineBC() { return this.B << 8 | this.C; }
     combineDE() { return this.D << 8 | this.E; }
     setAF(word) { this.A = word >> 8; this.F = this.setF(word & 0xFF); }
-    setHL(word) { this.H = word >> 8; this.L = word & 0xFF; }
+    setHL(word) {
+        this.H = word >> 8;
+        this.L = word & 0xFF;
+    }
     setBC(word) { this.B = word >> 8; this.C = word & 0xFF; }
     setDE(word) { this.D = word >> 8; this.E = word & 0xFF; }
     setSP(word) { this.sp  = word; }
