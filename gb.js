@@ -29,8 +29,8 @@ var opcodeMap = [
     ret, ret, jp, halt, halt, halt, sbc, rst,
     ldh, pop, ld, halt, halt, push, and, rst,
     halt, jp, ld, halt, halt, halt, xor, rst,
-    ldh, pop, ld, halt, halt, push, or, rst,
-    ld, ld, ld, halt, halt, halt, cp, rst
+    ldh, pop, ld, di, halt, push, or, rst,
+    ld, ld, ld, ei, halt, halt, cp, rst
 ];
 
 var cbOpcodeMap = [
@@ -67,6 +67,9 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set,
     set, set, set, set, set, set, set, set
 ];
+
+function di(cpu) { cpu.int = false; cpu.pc++ }
+function ei(cpu) { cpu.int = true; cpu.pc++ }
 
 function rst(cpu) {
     var opcode = cpu.read(cpu.pc++);
@@ -178,11 +181,19 @@ function add(cpu) {
     cpu.F.C = cpu.A & 0x100 !== 0;
 }
 
+function call(cpu) {
+    var address = cpu.pc + 3;
+    var newAddress = cpu.read16(cpu.pc + 1);
+    cpu.push(address);
+    cpu.pc = newAddress;
+}
+
 function ret(cpu) {
     var opcode = cpu.read(cpu.pc++);
     if (opcode === 0xD9) cpu.int = true;
     if (cpu.shouldJump(opcode)) {
-        cpu.pc = cpu.pop();
+        var address = cpu.pop();
+        cpu.pc = address;
     }
 }
 
@@ -423,11 +434,6 @@ function jp(cpu) {
     }
 }
 
-function call(cpu) {
-    cpu.push(cpu.pc + 3);
-    cpu.pc = cpu.read16(cpu.pc + 1);
-}
-
 class CPU {
     constructor(rom) {
         this.rom = rom;
@@ -437,19 +443,19 @@ class CPU {
         this.cb = false;
         this.int = true;
 
-        this.A = 0;
+        this.A = 1;
         this.B = 0;
-        this.C = 0;
+        this.C = 0x13;
         this.D = 0;
-        this.E = 0;
+        this.E = 0xd8;
         this.F = {
             Z: 0,
             N: 0,
             H: 0,
             C: 0,
         };
-        this.H = 0;
-        this.L = 0;
+        this.H = 1;
+        this.L = 0x4d;
     }
 
     run() {
@@ -464,9 +470,6 @@ class CPU {
             this.printState(op);
             if (op === halt) {
                 break;
-            }
-            if (curPC === 0xa309) {
-                console.log("YOU AGAIN");
             }
             op(this);
         }
@@ -500,7 +503,10 @@ class CPU {
         console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name}`)
     }
 
-    popByte() { return this.rom.read(this.sp++); }
+    popByte() {
+        var byte = this.rom.read(++this.sp);
+        return byte;
+    }
     pop() {
         var lo = this.popByte();
         var hi = this.popByte();
