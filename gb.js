@@ -68,6 +68,9 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set
 ];
 
+function adc(cpu) {
+
+}
 
 function cpl(cpu) {
    cpu.A = ~cpu.A;
@@ -576,6 +579,15 @@ class CPU {
     }
 }
 
+function renderPixel(x, y, color) {
+    var canvas = document.getElementById("gb");
+    if (canvas.getContext) {
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = color;
+        ctx.fillRect(x * 4, y * 4, 4, 4);
+    }
+}
+
 class ROMFile {
     constructor(buffer) {
         this.rom = buffer;
@@ -596,9 +608,24 @@ class ROMFile {
     }
 }
 
+const gameboyColorPalette = [
+    '#0f380f',
+    '#306230',
+    '#8bac0f',
+    '#9bbc0f'
+];
+const WIDTH = 160;
+const HEIGHT = 144;
+
 fetch('zelda.gb')
     .then(response => response.arrayBuffer())
     .then(arrayBuffer => {
+        for (var i = 0; i < WIDTH; i++) {
+            for (var j = 0; j < HEIGHT; j++) {
+                var random = Math.floor(Math.random() * gameboyColorPalette.length);
+                renderPixel(i, j, gameboyColorPalette[random]);
+            }
+        }
         var rom = new ROMFile(new Uint8Array(arrayBuffer));
         new CPU(rom).run();
     });
