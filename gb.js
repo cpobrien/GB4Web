@@ -482,21 +482,19 @@ class CPU {
         this.callNum = 0;
     }
 
-    run() {
-        while (true) {
-            var curPC = this.pc;
-            var address = this.rom.read(curPC);
-            var op = opcodeMap[address];
-            if (this.cb) {
-                op = cbOpcodeMap[address];
-                this.cb = false;
-            }
-            this.printState(op);
-            if (op === halt) {
-                break;
-            }
-            op(this);
+    tick() {
+        var curPC = this.pc;
+        var address = this.rom.read(curPC);
+        var op = opcodeMap[address];
+        if (this.cb) {
+            op = cbOpcodeMap[address];
+            this.cb = false;
         }
+        this.printState(op);
+        if (op === halt) {
+            throw "Halted!"
+        }
+        op(this);
     }
 
     shouldJump(opcode) {
@@ -575,18 +573,55 @@ class CPU {
             N : byte & 0x20 !== 0,
             H : byte & 0x20 !== 0,
             C : byte & 0x10 !== 0
-    };
+        };
     }
 }
 
-function renderPixel(x, y, color) {
-    var canvas = document.getElementById("gb");
-    if (canvas.getContext) {
-        var ctx = canvas.getContext('2d');
-        ctx.fillStyle = color;
-        ctx.fillRect(x * 4, y * 4, 4, 4);
+class Video {
+    constructor(rom, context) {
+        this.rom = rom;
+        this.context = context;
+    }
+    tick() {
+        for (var i = 0; i < WIDTH; i++) {
+            for (var j = 0; j < HEIGHT; j++) {
+                var random = Math.floor(Math.random() * gameboyColorPalette.length);
+                this.renderPixel(i, j, gameboyColorPalette[random]);
+            }
+        }
+    }
+    renderPixel(x, y, color) {
+        this.context.fillStyle = color;
+        this.context.fillRect(x * 4, y * 4, 4, 4);
     }
 }
+
+const gameboyColorPalette = [
+    '#0f380f',
+    '#306230',
+    '#8bac0f',
+    '#9bbc0f'
+];
+const WIDTH = 160;
+const HEIGHT = 144;
+class Gameboy {
+    constructor(cpu, video) {
+        this.cpu = cpu;
+        this.video = video;
+    }
+
+    tick() {
+        var clear = setInterval(() => {
+            try {
+                this.cpu.tick();
+                this.video.tick()
+            } catch(e) {
+               clearInterval(clear);
+            }
+        }, 1000 / 60);
+    }
+}
+
 
 class ROMFile {
     constructor(buffer) {
@@ -608,26 +643,15 @@ class ROMFile {
     }
 }
 
-const gameboyColorPalette = [
-    '#0f380f',
-    '#306230',
-    '#8bac0f',
-    '#9bbc0f'
-];
-const WIDTH = 160;
-const HEIGHT = 144;
-
 fetch('zelda.gb')
     .then(response => response.arrayBuffer())
     .then(arrayBuffer => {
-        for (var i = 0; i < WIDTH; i++) {
-            for (var j = 0; j < HEIGHT; j++) {
-                var random = Math.floor(Math.random() * gameboyColorPalette.length);
-                renderPixel(i, j, gameboyColorPalette[random]);
-            }
-        }
+        var ctx = document.getElementById('gb').getContext('2d');
+        if (!ctx) return;
         var rom = new ROMFile(new Uint8Array(arrayBuffer));
-        new CPU(rom).run();
+        var cpu = new CPU(rom);
+        var video = new Video(rom, ctx);
+        new Gameboy(cpu, video).tick();
     });
 
 Number.prototype.toHex = function() {
