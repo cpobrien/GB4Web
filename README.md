@@ -19,3 +19,4 @@ anything super tricky with booting (as far as I can tell).
 * pastraiser.com for [this opcode table](http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
 * Jonathan Gilchrist for [this reference implementation](https://github.com/jgilchrist/emulator)
 * Michael Fogleman for a [clean emulator design reference](https://github.com/fogleman/nes)
+* Tim Holman for [github-corners](https://github.com/tholman/github-corners)
