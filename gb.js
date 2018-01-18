@@ -577,25 +577,6 @@ class CPU {
     }
 }
 
-class Video {
-    constructor(rom, context) {
-        this.rom = rom;
-        this.context = context;
-    }
-    tick() {
-        for (var i = 0; i < WIDTH; i++) {
-            for (var j = 0; j < HEIGHT; j++) {
-                var random = Math.floor(Math.random() * gameboyColorPalette.length);
-                this.renderPixel(i, j, gameboyColorPalette[random]);
-            }
-        }
-    }
-    renderPixel(x, y, color) {
-        this.context.fillStyle = color;
-        this.context.fillRect(x * 4, y * 4, 4, 4);
-    }
-}
-
 const gameboyColorPalette = [
     '#0f380f',
     '#306230',
@@ -604,6 +585,29 @@ const gameboyColorPalette = [
 ];
 const WIDTH = 160;
 const HEIGHT = 144;
+class Video {
+    constructor(rom, context) {
+        this.rom = rom;
+        this.context = context;
+    }
+    renderLine(lineNumber) {
+        for (var i = 0; i < HEIGHT; i++) {
+            var random = Math.floor(Math.random() * gameboyColorPalette.length);
+            this.renderPixel(lineNumber, i, gameboyColorPalette[random]);
+        }
+    }
+
+    tick() {
+        for (var i = 0; i < WIDTH; i++) {
+            this.renderLine(i);
+        }
+    }
+    renderPixel(x, y, color) {
+        this.context.fillStyle = color;
+        this.context.fillRect(x * 4, y * 4, 4, 4);
+    }
+}
+
 class Gameboy {
     constructor(cpu, video) {
         this.cpu = cpu;
