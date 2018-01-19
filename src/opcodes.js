@@ -68,15 +68,19 @@ var cbOpcodeMap = [
     set, set, set, set, set, set, set, set
 ];
 
+function halt() {
+    throw "Halted!"
+}
+
 function adc(cpu) {
 
 }
 
 function cpl(cpu) {
-   cpu.A = ~cpu.A;
-   cpu.F.N = true;
-   cpu.F.H = true;
-   cpu.pc++;
+    cpu.A = ~cpu.A;
+    cpu.F.N = true;
+    cpu.F.H = true;
+    cpu.pc++;
 }
 
 function di(cpu) { cpu.int = false; cpu.pc++ }
@@ -239,7 +243,7 @@ function set(cpu) {
 
 function selectBit(opcode) { return Math.floor((opcode % 64) / 8) }
 function writeReg(cpu, opcode, fun) {
-   writeRegInternal(cpu, opcode, fun, op => op % 8)
+    writeRegInternal(cpu, opcode, fun, op => op % 8)
 }
 
 function decideInc(op) { return decideInternal(op, 0xC); }
@@ -252,19 +256,19 @@ function decideInternal(op, lowNibble) {
 }
 
 function writeRegInternal(cpu, opcode, fun, computeOp) {
-   switch (computeOp(opcode)) {
-       case 0: cpu.B = fun(cpu.B); break;
-       case 1: cpu.C = fun(cpu.C); break;
-       case 2: cpu.D = fun(cpu.D); break;
-       case 3: cpu.E = fun(cpu.E); break;
-       case 4: cpu.H = fun(cpu.H); break;
-       case 5: cpu.L = fun(cpu.L); break;
-       case 6:
-           var address = cpu.combineHL();
-           cpu.write(address, cpu.read(address));
-           break;
-       case 7: cpu.A = fun(cpu.A); break;
-   }
+    switch (computeOp(opcode)) {
+        case 0: cpu.B = fun(cpu.B); break;
+        case 1: cpu.C = fun(cpu.C); break;
+        case 2: cpu.D = fun(cpu.D); break;
+        case 3: cpu.E = fun(cpu.E); break;
+        case 4: cpu.H = fun(cpu.H); break;
+        case 5: cpu.L = fun(cpu.L); break;
+        case 6:
+            var address = cpu.combineHL();
+            cpu.write(address, cpu.read(address));
+            break;
+        case 7: cpu.A = fun(cpu.A); break;
+    }
 }
 
 function readRegDec(cpu, opcode) {
@@ -369,7 +373,7 @@ function ldh(cpu) {
     var opcode = cpu.read(cpu.pc);
     var position = 0xFF00 + cpu.read(cpu.pc + 1);
     if (opcode === 0xE0) {
-       cpu.A = cpu.read(position);
+        cpu.A = cpu.read(position);
     } else {
         cpu.write(position, cpu.A);
     }
@@ -385,7 +389,7 @@ function inc(cpu) {
     writeRegInternal(cpu, opcode, val => val + 1, decideInc);
     cpu.F.Z = res === 0;
     cpu.F.N = 0;
-    cpu.H.H = res & 0xF === 0x0;
+    cpu.F.H = res & 0xF === 0x0;
 }
 
 function dec(cpu) {
@@ -398,7 +402,7 @@ function dec(cpu) {
     var res = readRegDec(cpu, opcode);
     cpu.F.Z = res === 0;
     cpu.F.N = 0;
-    cpu.H.H = res & 0xF === 0xF;
+    cpu.F.H = res & 0xF === 0xF;
 }
 function computeCombinedRegisters(cpu, opcode, fun) {
     switch (opcode >> 4) {
@@ -456,221 +460,4 @@ function jp(cpu) {
     }
 }
 
-class CPU {
-    constructor(rom) {
-        this.rom = rom;
-
-        this.pc = 0x100;
-        this.sp = 0xFFFE;
-        this.cb = false;
-        this.int = true;
-
-        this.A = 1;
-        this.B = 0;
-        this.C = 0x13;
-        this.D = 0;
-        this.E = 0xd8;
-        this.F = {
-            Z: 0,
-            N: 0,
-            H: 0,
-            C: 0,
-        };
-        this.H = 1;
-        this.L = 0x4d;
-
-        this.callNum = 0;
-    }
-
-    tick() {
-        var curPC = this.pc;
-        var address = this.rom.read(curPC);
-        var op = opcodeMap[address];
-        if (this.cb) {
-            op = cbOpcodeMap[address];
-            this.cb = false;
-        }
-        this.printState(op);
-        if (op === halt) {
-            throw "Halted!"
-        }
-        op(this);
-    }
-
-    shouldJump(opcode) {
-        // TODO: there's gotta be some clever way to simplify this
-        switch (opcode) {
-            // NZ
-            case 0x20:
-            case 0xC0:
-            case 0xC2: return !this.F.Z;
-            // NC
-            case 0x30:
-            case 0xD0:
-            case 0xD2: return !this.F.C;
-            // Z
-            case 0x28:
-            case 0xC8:
-            case 0xCA: return this.F.Z;
-            // C
-            case 0x38:
-            case 0xD8:
-            case 0xDA: return this.F.C;
-        }
-        return true;
-    }
-
-    printState(op) {
-        var pos = this.pc;
-        console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name} instruction #${++this.callNum}`)
-    }
-
-    popByte() {
-        var byte = this.rom.read(++this.sp);
-        return byte;
-    }
-    pop() {
-        var lo = this.popByte();
-        var hi = this.popByte();
-        return hi << 8 | lo;
-    }
-
-    pushByte(val) { this.rom.write(this.sp--, val); }
-    push(val) {
-        var lo = val & 0xFF;
-        var hi = val >> 8;
-        this.pushByte(hi);
-        this.pushByte(lo);
-    }
-
-    write(address, val) { this.rom.write(address, val); }
-    write16(address, val) { this.rom.write16(address, val); }
-    read(address) { return this.rom.read(address); }
-    read16(address) { return this.rom.read16(address); }
-    combineAF() { return this.A << 8 | this.flagsToByte(); }
-    combineHL() { return this.H << 8 | this.L; }
-    combineBC() { return this.B << 8 | this.C; }
-    combineDE() { return this.D << 8 | this.E; }
-    setAF(word) { this.A = word >> 8; this.F = this.setF(word & 0xFF); }
-    setHL(word) {
-        this.H = word >> 8;
-        this.L = word & 0xFF;
-    }
-    setBC(word) { this.B = word >> 8; this.C = word & 0xFF; }
-    setDE(word) { this.D = word >> 8; this.E = word & 0xFF; }
-    setSP(word) { this.sp  = word; }
-    flagsToByte() {
-        var res = 0;
-        res |= this.F.Z << 7;
-        res |= this.F.N << 6;
-        res |= this.F.H << 5;
-        res |= this.F.C << 4;
-        return res;
-    }
-    setF(byte) {
-        return {
-            Z : byte & 0x80 !== 0,
-            N : byte & 0x20 !== 0,
-            H : byte & 0x20 !== 0,
-            C : byte & 0x10 !== 0
-        };
-    }
-}
-
-const gameboyColorPalette = [
-    '#0f380f',
-    '#306230',
-    '#8bac0f',
-    '#9bbc0f'
-];
-const WIDTH = 160;
-const HEIGHT = 144;
-class Video {
-    constructor(rom, context) {
-        this.rom = rom;
-        this.context = context;
-    }
-    renderLine(lineNumber) {
-        for (var i = 0; i < HEIGHT; i++) {
-            var random = Math.floor(Math.random() * gameboyColorPalette.length);
-            this.renderPixel(lineNumber, i, gameboyColorPalette[random]);
-        }
-    }
-
-    tick() {
-        for (var i = 0; i < WIDTH; i++) {
-            this.renderLine(i);
-        }
-    }
-    renderPixel(x, y, color) {
-        this.context.fillStyle = color;
-        this.context.fillRect(x * 4, y * 4, 4, 4);
-    }
-}
-
-function bytesToSprite(binaryData) {
-    const flags = binaryData >> 24;
-    return {
-        y: binaryData & 0xF,
-        x: (binaryData >> 8) & 0xF,
-        tile: binaryData >> 16 & 0xf,
-        priority: flags & 0x80,
-        yFlip: flags & 0x40,
-        xFlip: flags & 0x20,
-        palette: flags & 0x10
-    };
-}
-
-class Gameboy {
-    constructor(cpu, video) {
-        this.cpu = cpu;
-        this.video = video;
-    }
-
-    tick() {
-        var clear = setInterval(() => {
-            try {
-                this.cpu.tick();
-                this.video.tick()
-            } catch(e) {
-               clearInterval(clear);
-            }
-        }, 1000 / 60);
-    }
-}
-
-
-class ROMFile {
-    constructor(buffer) {
-        this.rom = buffer;
-    }
-
-    write(address, val) { this.rom[address] = val; }
-    write16(address, val) {
-        var lo = val >> 8;
-        var hi = val & 0xFF;
-        this.write(address, lo);
-        this.write(address + 1, hi);
-    }
-    read(address) { return this.rom[address]; }
-    read16(address) {
-        var lo = this.rom[address];
-        var hi = this.rom[address + 1];
-        return hi << 8 | lo;
-    }
-}
-
-fetch('zelda.gb')
-    .then(response => response.arrayBuffer())
-    .then(arrayBuffer => {
-        var ctx = document.getElementById('gb').getContext('2d');
-        if (!ctx) return;
-        var rom = new ROMFile(new Uint8Array(arrayBuffer));
-        var cpu = new CPU(rom);
-        var video = new Video(rom, ctx);
-        new Gameboy(cpu, video).tick();
-    });
-
-Number.prototype.toHex = function() {
-    return this.toString(16);
-};
+export {opcodeMap, cbOpcodeMap};

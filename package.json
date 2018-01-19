@@ -1,0 +1,15 @@
+{
+  "name": "GB4Web",
+  "version": "0.0.1",
+  "description": "My attempt at running Link's Awakening...eventually",
+  "main": "index.js",
+  "repository": "https://github.com/cpobrien/GB4Web.git",
+  "author": "Connor O'Brien <connorpadraigobrien@gmail.com>",
+  "license": "GPL-3.0",
+  "scripts": {
+    "start": "webpack --config webpack.config.js"
+  },
+  "devDependencies": {
+    "webpack": "^3.10.0"
+  }
+}
