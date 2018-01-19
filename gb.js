@@ -608,6 +608,19 @@ class Video {
     }
 }
 
+function bytesToSprite(binaryData) {
+    const flags = binaryData >> 24;
+    return {
+        y: binaryData & 0xF,
+        x: (binaryData >> 8) & 0xF,
+        tile: binaryData >> 16 & 0xf,
+        priority: flags & 0x80,
+        yFlip: flags & 0x40,
+        xFlip: flags & 0x20,
+        palette: flags & 0x10
+    };
+}
+
 class Gameboy {
     constructor(cpu, video) {
         this.cpu = cpu;
