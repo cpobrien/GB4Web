@@ -10,18 +10,17 @@ class Video {
     constructor(rom, context) {
         this.rom = rom;
         this.context = context;
+        this.currentLine = 0;
     }
     renderLine(lineNumber) {
-        for (var i = 0; i < HEIGHT; i++) {
+        for (var i = 0; i < WIDTH; i++) {
             var random = Math.floor(Math.random() * gameboyColorPalette.length);
-            this.renderPixel(lineNumber, i, gameboyColorPalette[random]);
+            this.renderPixel(i, lineNumber, gameboyColorPalette[random]);
         }
     }
 
     tick() {
-        for (var i = 0; i < WIDTH; i++) {
-            this.renderLine(i);
-        }
+        this.renderLine((this.currentLine++) % (HEIGHT + 1));
     }
     renderPixel(x, y, color) {
         this.context.fillStyle = color;

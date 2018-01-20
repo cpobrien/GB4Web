@@ -10,14 +10,16 @@ class Gameboy {
     }
 
     tick() {
-        var clear = setInterval(() => {
+        while(true) {
             try {
                 this.cpu.tick();
                 this.video.tick()
             } catch(e) {
-               clearInterval(clear);
+                break;
             }
-        }, 1000 / 60);
+        }
+        // var clear = setInterval(() => {
+        // }, 1000 / (60);
     }
 }
 
