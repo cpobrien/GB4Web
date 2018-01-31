@@ -63,7 +63,7 @@ class CPU {
 
     printState(op) {
         var pos = this.pc;
-        console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name} instruction #${++this.callNum}`)
+        // console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name} instruction #${++this.callNum}`)
     }
 
     popByte() {

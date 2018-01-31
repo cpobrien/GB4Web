@@ -71,7 +71,7 @@
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__src_cpu_js__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__src_rom_js__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__src_video_js__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__src_video_js__ = __webpack_require__(5);
 
 
 
@@ -85,13 +85,13 @@ class Gameboy {
 
     tick() {
         var clear = setInterval(() => {
-            try {
-                this.cpu.tick();
-                this.video.tick()
-            } catch(e) {
-               clearInterval(clear);
-            }
-        }, 1000 / (60 * 144));
+                try {
+                    this.cpu.tick();
+                    this.video.tick()
+                } catch(e) {
+                    clearInterval(clear);
+                }
+        }, 1000 / (60));
     }
 }
 
@@ -179,7 +179,7 @@ class CPU {
 
     printState(op) {
         var pos = this.pc;
-        console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name} instruction #${++this.callNum}`)
+        // console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name} instruction #${++this.callNum}`)
     }
 
     popByte() {
@@ -741,7 +741,8 @@ class ROMFile {
 
 
 /***/ }),
-/* 4 */
+/* 4 */,
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
