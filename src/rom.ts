@@ -1,4 +1,6 @@
 class ROMFile {
+    private rom;
+
     constructor(buffer) {
         this.rom = buffer;
     }

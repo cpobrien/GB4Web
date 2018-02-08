@@ -1,9 +1,11 @@
-import CPU from './src/cpu.js'
-import ROMFile from './src/rom.js'
-import Video from './src/video.js'
+import CPU from './src/cpu'
+import ROMFile from './src/rom'
+import Video from './src/video'
 
 
 class Gameboy {
+    private cpu;
+    private video;
     constructor(cpu, video) {
         this.cpu = cpu;
         this.video = video;
@@ -24,7 +26,7 @@ class Gameboy {
 fetch('zelda.gb')
     .then(response => response.arrayBuffer())
     .then(arrayBuffer => {
-        var ctx = document.getElementById('gb').getContext('2d');
+        var ctx = (<HTMLCanvasElement> document.getElementById('gb')).getContext('2d');
         if (!ctx) return;
         var rom = new ROMFile(new Uint8Array(arrayBuffer));
         var cpu = new CPU(rom);

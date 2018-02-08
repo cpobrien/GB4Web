@@ -91,14 +91,14 @@ function rst(cpu) {
     var rstValues = [0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38];
     var row = (opcode >> 4) - 0xC;
     var column = opcode & 0xF;
-    cpu.pushByte(rstValues[(2 * row) + (column === 0xF)]);
+    cpu.pushByte(rstValues[(2 * row) + (column === 0xF ? 0 : 1)]);
 }
 
 function rr(cpu) {
     var opcode = cpu.read(cpu.pc++);
     writeReg(cpu, opcode, reg => {
         var res = reg >> 1 | (reg & 1) << 7;
-        cpu.F.C = reg & 1 === 1;
+        cpu.F.C = (reg & 1) === 1;
         cpu.F.Z = res === 0;
         cpu.F.N = false;
         cpu.F.H = false;
@@ -171,8 +171,8 @@ function add(cpu) {
         var carry = originalValue ^ val ^ (cpu.sp ^ 0xFFFF);
         cpu.F.Z = false;
         cpu.F.N = false;
-        cpu.F.H = carry & 0x10 === 0x10;
-        cpu.F.C = carry & 0x100 === 0x100;
+        cpu.F.H = (carry & 0x10) === 0x10;
+        cpu.F.C = (carry & 0x100) === 0x100;
         return;
     }
     if (highNibble < 4) {
@@ -193,7 +193,7 @@ function add(cpu) {
     cpu.F.Z = cpu.A === 0;
     cpu.F.N = false;
     cpu.F.H = ((val & 0xF) + (originalValue & 0xF) > 0xF);
-    cpu.F.C = cpu.A & 0x100 !== 0;
+    cpu.F.C = (cpu.A & 0x100) !== 0;
 }
 
 function call(cpu) {
@@ -216,7 +216,7 @@ function sla(cpu) {
     var opcode = cpu.read(cpu.pc++);
     writeReg(cpu, opcode, reg => {
         var res = (reg << 1) & 0xFF;
-        cpu.F.C = reg & 1 === 1;
+        cpu.F.C = (reg & 1) === 1;
         cpu.F.Z = res === 0;
         cpu.F.H = false;
         cpu.F.N = false;
@@ -251,7 +251,7 @@ function decideDec(op) { return decideInternal(op, 0xD); }
 
 function decideInternal(op, lowNibble) {
     var res = (op >> 8) * 2;
-    if (op & 0xF === lowNibble) res++;
+    if (op & (0xF === lowNibble ? 1 : 0)) res++;
     return res;
 }
 
@@ -271,9 +271,14 @@ function writeRegInternal(cpu, opcode, fun, computeOp) {
     }
 }
 
-function readRegDec(cpu, opcode) {
-    readRegInternal(cpu, opcode, decideDec);
+function readRegInc(cpu, opcode) {
+    return readRegInternal(cpu, opcode, decideInc);
 }
+
+function readRegDec(cpu, opcode) {
+    return readRegInternal(cpu, opcode, decideDec);
+}
+
 function readReg(cpu, opcode) {
     return readRegInternal(cpu, opcode, opcode => opcode % 8);
 }
@@ -327,7 +332,7 @@ function ld(cpu) {
         }
         cpu.pc += 2;
     } else if (opRem === 6 && highNibble < 4) {
-        var pos = highNibble + (opcode & 0xF === 0xE) ? 4 : 0;
+        var pos = highNibble + (((opcode & 0xF) === 0xE) ? 4 : 0);
         var byte = cpu.read(cpu.pc++);
         writeReg(cpu, opcode * 8, (opcode) => byte);
     } else if (opRem === 2 && highNibble < 4) {
@@ -346,19 +351,19 @@ function ld(cpu) {
             cpu.combineDE,
             hlInc,
             hlDec][highNibble]();
-        if (opcode & 0xF === 0x2) {
+        if ((opcode & 0xF) === 0x2) {
             cpu.A = value;
         } else {
             cpu.write(value, cpu.A);
         }
     } else if (highNibble > 0xD && opRem === 2) {
-        var val = opcode & 0xF === 0x2 ? 0xFF00 + cpu.C : cpu.read16(cpu.pc);
+        var val = (opcode & 0xF) === 0x2 ? 0xFF00 + cpu.C : cpu.read16(cpu.pc);
         if (highNibble === 0xE) {
             cpu.A = cpu.read(val);
         } else {
             cpu.write(val, cpu.A);
         }
-        cpu.pc += opcode & 0xF === 0x2 ? 1 : 2; // but y tho
+        cpu.pc += (opcode & 0xF) === 0x2 ? 1 : 2; // but y tho
     } else if (opcode === 0xF8) {
         var byte = cpu.read(cpu.pc++);
         cpu.write16(cpu.combineHL(), cpu.sp + byte);
@@ -382,19 +387,20 @@ function ldh(cpu) {
 
 function inc(cpu) {
     var opcode = cpu.read(cpu.pc++);
-    if (opcode & 0xF === 0xB) {
+    if ((opcode & 0xF) === 0xB) {
         computeCombinedRegisters(cpu, opcode, (op) => op + 1);
         return;
     }
     writeRegInternal(cpu, opcode, val => val + 1, decideInc);
+    var res = readRegInc(cpu, opcode);
     cpu.F.Z = res === 0;
     cpu.F.N = 0;
-    cpu.F.H = res & 0xF === 0x0;
+    cpu.F.H = (res & 0xF) === 0x0;
 }
 
 function dec(cpu) {
     var opcode = cpu.read(cpu.pc++);
-    if (opcode & 0xF === 0xB) {
+    if ((opcode & 0xF) === 0xB) {
         computeCombinedRegisters(cpu, opcode, (op) => op - 1);
         return;
     }
@@ -402,7 +408,7 @@ function dec(cpu) {
     var res = readRegDec(cpu, opcode);
     cpu.F.Z = res === 0;
     cpu.F.N = 0;
-    cpu.F.H = res & 0xF === 0xF;
+    cpu.F.H = (res & 0xF) === 0xF;
 }
 function computeCombinedRegisters(cpu, opcode, fun) {
     switch (opcode >> 4) {
@@ -415,7 +421,6 @@ function computeCombinedRegisters(cpu, opcode, fun) {
 
 function cb(cpu) { cpu.cb = true; cpu.pc++; }
 function nop(cpu) { return cpu.pc++ }
-function halt(cpu) { return cpu.pc++ }
 
 function jr(cpu) {
     var opcode = cpu.read(cpu.pc);

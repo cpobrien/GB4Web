@@ -7,6 +7,10 @@ const gameboyColorPalette = [
 const WIDTH = 160;
 const HEIGHT = 144;
 class Video {
+    private rom;
+    private context;
+    private currentLine;
+
     constructor(rom, context) {
         this.rom = rom;
         this.context = context;

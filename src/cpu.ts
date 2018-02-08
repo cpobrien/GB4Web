@@ -1,6 +1,22 @@
-import {opcodeMap, cbOpcodeMap} from "./opcodes.js";
+import {opcodeMap, cbOpcodeMap} from "./opcodes";
 
 class CPU {
+    private rom;
+    private pc;
+    private sp;
+    private cb;
+    private int;
+
+    private A;
+    private B;
+    private C;
+    private D;
+    private E;
+    private F;
+    private H;
+    private L;
+    private callNum;
+
     constructor(rom) {
         this.rom = rom;
 
@@ -34,7 +50,6 @@ class CPU {
             op = cbOpcodeMap[address];
             this.cb = false;
         }
-        this.printState(op);
         op(this);
     }
 
@@ -59,11 +74,6 @@ class CPU {
             case 0xDA: return this.F.C;
         }
         return true;
-    }
-
-    printState(op) {
-        var pos = this.pc;
-        // console.log(`PC: 0x${pos.toHex()}\t[${this.rom.read(pos).toHex()}] ${op.name} instruction #${++this.callNum}`)
     }
 
     popByte() {
@@ -110,16 +120,12 @@ class CPU {
     }
     setF(byte) {
         return {
-            Z : byte & 0x80 !== 0,
-            N : byte & 0x20 !== 0,
-            H : byte & 0x20 !== 0,
-            C : byte & 0x10 !== 0
+            Z : (byte & 0x80) !== 0,
+            N : (byte & 0x20) !== 0,
+            H : (byte & 0x20) !== 0,
+            C : (byte & 0x10) !== 0
         };
     }
 }
-
-Number.prototype.toHex = function() {
-    return this.toString(16);
-};
 
 export default CPU;
